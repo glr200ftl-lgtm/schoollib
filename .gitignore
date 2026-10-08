@@ -1,0 +1,9 @@
+# Python compiled files
+__pycache__/
+*.pyc
+
+# Logs
+server.logdb.sqlite3
+staticfiles/
+*.log
+__pycache__/

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Главная — Школьная библиотека{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>Добро пожаловать в школьную библиотеку!</h1>
+    <p>Здесь ученики могут найти книги и учебники, а также обменяться ими между собой.</p>
+    <p class="stats">
+        В каталоге: <strong>{{ books_count }}</strong> книг,
+        категорий: <strong>{{ categories_count }}</strong>.
+    </p>
+    <p>
+        <a class="btn" href="{% url 'catalog:catalog' %}">Открыть каталог</a>
+        <a class="btn btn-secondary" href="{% url 'exchange:exchange' %}">Перейти к обмену</a>
+    </p>
+</section>
+{% endblock %}
