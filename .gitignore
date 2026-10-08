@@ -7,3 +7,4 @@ server.logdb.sqlite3
 staticfiles/
 *.log
 __pycache__/
+db.sqlite3
