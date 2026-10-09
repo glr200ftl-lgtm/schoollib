@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Каталог — Школьная библиотека{% endblock %}
+
+{% block content %}
+<h1>Каталог книг</h1>
+<p class="muted">Этап 1: отображение seed-данных. Поиск и фильтры появятся на следующих этапах.</p>
+
+<div class="books-grid">
+    {% for book in books %}
+    <article class="book-card">
+        {% if book.cover %}
+            <img src="{{ book.cover.url }}" alt="Обложка: {{ book.title }}" class="cover">
+        {% else %}
+            <div class="cover cover-placeholder">Нет обложки</div>
+        {% endif %}
+        <h2>{{ book.title }}</h2>
+        <p class="author">{{ book.author }}</p>
+        <p class="meta">Категория: {{ book.category.name }} · Состояние: {{ book.get_condition_display }}</p>
+        <p class="meta muted">Владелец: {{ book.owner.full_name }} ({{ book.owner.grade }})</p>
+    </article>
+    {% empty %}
+    <p>Каталог пуст — выполните <code>python manage.py seed_demo</code>.</p>
+    {% endfor %}
+</div>
+{% endblock %}

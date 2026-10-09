@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Школьная библиотека{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="{% url 'catalog:home' %}" class="logo">
+                📚 Школьная библиотека
+            </a>
+            <nav class="main-nav">
+                <a href="{% url 'catalog:home' %}" class="{% if request.path == '/' %}active{% endif %}">Главная</a>
+                <a href="{% url 'catalog:catalog' %}" class="{% if '/catalog' in request.path %}active{% endif %}">Каталог</a>
+                <a href="{% url 'exchange:exchange' %}" class="{% if '/exchange' in request.path %}active{% endif %}">Обмен</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p><strong>МБОУ «Средняя общеобразовательная школа № 1»</strong> — проект обмена учебниками и книгами</p>
+            <p>Адрес: г. Москва, ул. Школьная, д. 1 &nbsp;|&nbsp; Тел.: +7 (495) 123-45-67 &nbsp;|&nbsp; E-mail: library@school1.ru</p>
+            <p class="muted">© 2026 Школьная библиотека. Этап 1: каркас проекта.</p>
+        </div>
+    </footer>
+</body>
+</html>
