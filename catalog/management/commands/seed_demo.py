@@ -13,6 +13,7 @@
 
 from io import BytesIO
 
+from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
@@ -94,12 +95,18 @@ ADS = [
 
 
 def make_cover_image(title: str, author: str):
-    """Генерирует PNG-обложку-заглушку: цветной фон + текст названия."""
+    """Генерирует PNG-обложку-заглушку: цветной фон + текст названия.
+
+    Цвет подбирается детерминированно (md5 от названия), а не через built-in
+    hash(): он зависит от PYTHONHASHSEED и давал бы разные обложки при каждом
+    новом запуске.
+    """
+    import hashlib
+
     from PIL import Image, ImageDraw
 
     width, height = 300, 420
-    # Детерминированный цвет по хешу названия
-    h = abs(hash(title))
+    h = int(hashlib.md5(title.encode("utf-8")).hexdigest(), 16)
     color = (40 + h % 180, 60 + (h // 7) % 150, 90 + (h // 13) % 140)
     img = Image.new("RGB", (width, height), color)
     draw = ImageDraw.Draw(img)
@@ -189,11 +196,33 @@ class Command(BaseCommand):
             )
             if not book.cover:
                 # Детерминированное имя файла (md5 от названия), чтобы повторный
-                # запуск не создавал дубликаты обложек.
+                # запуск не создавал дубликаты обложек. Django добавляет случайный
+                # суффикс только если файл с таким именем уже существует; поэтому
+                # сначала удаляем старый сгенерированный файл.
                 import hashlib
+                import os
 
                 digest = hashlib.md5(title.encode("utf-8")).hexdigest()[:8]
                 filename = f"{i + 1:02d}_{digest}.png"
+
+                old_name = book.cover.name
+                if old_name:
+                    try:
+                        old_path = book.cover.path
+                    except (ValueError, NotImplementedError):
+                        old_path = None
+                    book.delete()  # отвязывает и удаляет старый файл обложки
+                    expected_path = os.path.join(
+                        str(settings.MEDIA_ROOT), "covers", filename
+                    )
+                    if (
+                        old_path
+                        and old_path != expected_path
+                        and os.path.isfile(old_path)
+                    ):
+                        # чистим «осиротевший» файл со случайным суффиксом
+                        os.remove(old_path)
+
                 book.cover.save(filename, make_cover_image(title, author), save=True)
             book_map[title] = book
             self.stdout.write(f"{'+' if created else '='} книга: {title}")
