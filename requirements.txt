@@ -1,3 +1,6 @@
-Django>=5,<6
-pillow
-psycopg2-binary
+# Школьная библиотека — зависимости этапа 1 (каркас, схема БД, seed)
+# Стек зафиксирован в CONTEXT.md: Python 3.12 + Django 5.x + PostgreSQL 16 (dev — SQLite)
+
+Django>=5,<6          # фреймворк; проверено на 5.2
+pillow                # генерация обложек-заглушек в seed_demo
+psycopg2-binary       # драйвер PostgreSQL (не нужен, если работаете только на SQLite)
