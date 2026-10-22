@@ -13,6 +13,8 @@ manage.py            — точка входа Django
 schoollib/           — настройки, корневые URL
 catalog/             — приложение каталога: модели users/categories/books/ads,
                        страницы / и /catalog, команда seed_demo
+accounts/            — аутентификация и роли: регистрация, вход/выход,
+                       подтверждение e-mail, восстановление пароля, профиль (/my/)
 exchange/            — приложение раздела обмена: страница /exchange
 templates/           — base.html (шапка/футер) и страницы
 static/css/style.css — стили layout
@@ -62,18 +64,34 @@ DATABASE_URL=sqlite python manage.py runserver
 | Книги | 12 | С обложками-заглушками (Pillow, PNG в `media/covers/`) |
 | Объявления | 3 | Доска обмена |
 
-## Страницы этапа 1
+## Страницы
 
+Этап 1:
 - `/` — главная (счётчики книг/категорий)
 - `/catalog/` — каталог (список seed-книг с обложками)
 - `/exchange/` — заглушка «раздел в разработке»
 
-Поиск, авторизация, формы подачи объявлений — следующие этапы (см. STAGES.md).
+Этап 2 (аутентификация и роли):
+- `/register/` — регистрация (ФИО, e-mail, пароль ×2, класс); письмо подтверждения
+  в dev выводится в консоль (`[MAIL] ...`)
+- `/confirm-email/<uid>/<token>/` — подтверждение e-mail
+- `/login/`, `/logout/` — вход/выход; `/password-reset/` и
+  `/password-reset/confirm/<uid>/<token>/` — восстановление пароля
+- `/my/` — профиль ученика (правка ФИО, класса, контакта, смена пароля); только для
+  авторизованных (гость → редирект на вход)
+- `/admin/` — доступ только для роли admin (ученик → 403)
+
+Блокировка: поле `is_blocked` у пользователя; заблокированный не может войти.
+Пароли хранятся хешем (pbkdf2_sha256). Дубли e-mail при регистрации отклоняются.
+
+Поиск, формы добавления книг/объявлений, админка — следующие этапы (см. STAGES.md).
 
 ## Проверка
 
 ```bash
+DATABASE_URL=sqlite python manage.py test accounts catalog   # все тесты OK
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8000/          # 200
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8000/catalog/  # 200
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8000/exchange/ # 200
+curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8000/my/       # 302 (гость → вход)
 ```

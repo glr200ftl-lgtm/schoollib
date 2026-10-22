@@ -1,24 +1,63 @@
+from django.contrib.auth.hashers import check_password, make_password
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
 
 
-class User(models.Model):
-    """Пользователь системы: ученик или администратор (п.6 ТЗ — users)."""
+class UserManager(BaseUserManager):
+    """Менеджер пользователей: создание обычного пользователя и администратора."""
+
+    def create_user(self, username, full_name="", password=None, **extra_fields):
+        if not username:
+            raise ValueError("Логин обязателен.")
+        email = self.normalize_email(extra_fields.pop("email", ""))
+        user = self.model(username=username, full_name=full_name, email=email, **extra_fields)
+        if password:
+            user.set_password(password)  # сохраняем только хеш
+        else:
+            user.password = ""
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, username, full_name="", password=None, **extra_fields):
+        extra_fields.setdefault("role", User.Role.ADMIN)
+        extra_fields.setdefault("is_active", True)
+        extra_fields.setdefault("is_blocked", False)
+        return self.create_user(username, full_name, password, **extra_fields)
+
+
+class User(AbstractBaseUser):
+    """Пользователь системы: ученик или администратор (п.6 ТЗ — users).
+
+    Наследуется от AbstractBaseUser, поэтому Django использует это модель
+    как AUTH_USER_MODEL: session, login/logout, password hash — из коробки.
+    Поля `password` и `last_login` унаследованы (hasher + DateTimeField).
+    """
 
     class Role(models.TextChoices):
         STUDENT = "student", "Ученик"
         ADMIN = "admin", "Администратор"
 
     username = models.CharField("Логин", max_length=150, unique=True)
-    # Пароль будет задействован на этапе авторизации; сейчас храним хеш заготовки.
-    password = models.CharField("Пароль (хеш)", max_length=128, blank=True)
+    # password и last_login наследуются от AbstractBaseUser (hasher, не plaintext)
     full_name = models.CharField("ФИО", max_length=200)
-    email = models.EmailField("Электронная почта", blank=True)
+    email = models.EmailField("Электронная почта", unique=True)
     grade = models.CharField("Класс", max_length=20, blank=True)
     role = models.CharField(
         "Роль", max_length=20, choices=Role.choices, default=Role.STUDENT
     )
     is_active = models.BooleanField("Активен", default=True)
+    is_blocked = models.BooleanField(
+        "Заблокирован",
+        default=False,
+        help_text="Заблокированный пользователь не может войти (этап 2).",
+    )
+    email_confirmed = models.BooleanField("E-mail подтверждён", default=False)
     created_at = models.DateTimeField("Дата регистрации", auto_now_add=True)
+
+    USERNAME_FIELD = "username"
+    REQUIRED_FIELDS = ["full_name"]
+
+    objects = UserManager()
 
     class Meta:
         db_table = "users"
@@ -27,6 +66,29 @@ class User(models.Model):
 
     def __str__(self):
         return f"{self.full_name} ({self.username})"
+
+    # --- Интерфейс, ожидаемый Django auth / admin ---------------------
+    @property
+    def is_staff(self):
+        """Флаг для django.contrib.admin — доступ по роли admin."""
+        return self.role == self.Role.ADMIN
+
+    def has_perm(self, perm, obj=None):
+        return self.is_active and not self.is_blocked and self.role == self.Role.ADMIN
+
+    def has_module_perms(self, app_label):
+        return self.has_perm("")
+
+    # --- Проверка пароля без изменения модели -------------------------
+    def verify_password(self, raw_password):
+        """Проверяет пароль по хешу (для кастомного authenticate backend)."""
+        if not self.password or not raw_password:
+            return False
+        return check_password(raw_password, self.password)
+
+    def set_password(self, raw_password):
+        """Хеширует пароль перед сохранением (override AbstractBaseUser)."""
+        self.password = make_password(raw_password)
 
 
 class Category(models.Model):
