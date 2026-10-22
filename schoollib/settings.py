@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     # Приложения проекта
     "catalog",
     "exchange",
+    "accounts",
 ]
 
 MIDDLEWARE = [
@@ -42,6 +43,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "accounts.access.AdminOnlyMiddleware",  # /admin/ — только роль admin (этап 2)
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -131,3 +133,30 @@ MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# --- Аутентификация (Этап 2) ------------------------------------------
+
+AUTH_USER_MODEL = "catalog.User"
+
+AUTHENTICATION_BACKENDS = [
+    "accounts.backends.EmailOrUsernameModelBackend",
+]
+
+LOGIN_URL = "accounts:login"
+LOGIN_REDIRECT_URL = "accounts:profile"
+LOGOUT_REDIRECT_URL = "catalog:home"
+
+# Абсолютные ссылки в письмах (подтверждение e-mail, сброс пароля)
+SITE_SCHEME = os.getenv("SITE_SCHEME", "http")
+
+# Почта: по умолчанию console backend — письмо печатается в консоль/лог
+# (требование dev-режима этапа 2). Для боевого SMTP задайте EMAIL_HOST и т.д.
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = os.getenv("EMAIL_HOST", "localhost")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "25"))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "0") == "1"
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "library@school1.ru")

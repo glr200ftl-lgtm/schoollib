@@ -157,7 +157,9 @@ class Command(BaseCommand):
                     "email": data["email"],
                     "grade": data["grade"],
                     "role": data["role"],
+                    # демо-аккаунты: пароль хешируется, e-mail считается подтверждённым
                     "password": make_password(data["password"]),
+                    "email_confirmed": True,
                 },
             )
             user_map[login] = user

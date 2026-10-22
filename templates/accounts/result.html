@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — Школьная библиотека{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<p>{{ text }}</p>
+<p><a class="btn btn-primary" href="{% url 'accounts:login' %}">Перейти ко входу</a></p>
+{% endblock %}

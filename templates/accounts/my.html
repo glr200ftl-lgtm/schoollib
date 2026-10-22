@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Мой кабинет — Школьная библиотека{% endblock %}
+{% block content %}
+<h1>Мой кабинет</h1>
+<p>Здравствуйте, <strong>{{ user.full_name }}</strong>! Класс: {{ user.grade|default:"—" }}</p>
+<p><a class="btn" href="{% url 'accounts:profile' %}">Редактировать профиль</a></p>
+<h2>Мои книги ({{ books|length }})</h2>
+<ul>{% for b in books %}<li>{{ b.title }} — {{ b.author }}</li>{% empty %}<li class="muted">Пока нет книг.</li>{% endfor %}</ul>
+<h2>Мои объявления ({{ ads|length }})</h2>
+<ul>{% for a in ads %}<li>{{ a.title }}</li>{% empty %}<li class="muted">Пока нет объявлений.</li>{% endfor %}</ul>
+<p class="muted">Добавление книг и объявлений — следующий этап.</p>
+{% endblock %}
