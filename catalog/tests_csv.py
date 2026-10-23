@@ -134,14 +134,22 @@ class CsvImportTests(TestCase):
             "csv_file": SimpleUploadedFile("b.csv", data, content_type="text/csv"),
             "mode": "upsert", "apply": "yes", "confirm_mode": "upsert",
         })
-        self.assertContains(resp, "ошибок <strong>4</strong>", html=False)
+        self.assertContains(resp, "ошибок <strong>3</strong>", html=False)
         self.assertContains(resp, "добавлено <strong>1</strong>", html=False)
         content = resp.content.decode()
-        for n in ("2", "3", "4", "5"):
+        # битые строки (нет названия / пустой автор / мусорный год) — в отчёте
+        # под своими номерами; корректных строк в этом файле 2:
+        # «Дубль» DUP-1 обновляет существующую книгу (не ошибка),
+        # «Хорошая книга» R-004 добавляется.
+        for n in ("2", "4", "5"):
             self.assertIn(f"<td>{n}</td>", content, f"в отчёте нет строки {n}")
-        self.assertIn("пустой название", content)
-        self.assertIn("уже существует", content)
+        self.assertNotIn("<td>3</td>", content)
+        self.assertNotIn("<td>6</td>", content)
+        # согласованный род: «пустое название», «пустой автор»
+        self.assertIn("пустое название", content)
         self.assertIn("пустой автор", content)
+        # дубль номера в базе не создаёт вторую запись
+        self.assertEqual(Book.objects.filter(catalog_number="DUP-1").count(), 1)
         self.assertTrue(Book.objects.filter(catalog_number="R-004").exists())
         self.assertFalse(Book.objects.filter(catalog_number="R-003").exists())
 
