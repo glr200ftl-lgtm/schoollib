@@ -1,0 +1,12 @@
+{% extends "catalog/admin_base.html" %}
+{% block title %}{% if is_new %}Новая категория{% else %}Категория: {{ category.name }}{% endif %} — админка{% endblock %}
+{% block admin_content %}
+<h2>{% if is_new %}Добавить категорию{% else %}Редактирование категории «{{ category.name }}»{% endif %}</h2>
+
+<form method="post" class="model-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <a href="{% url 'catalog_admin:category_list' %}" class="btn btn-link">Отмена</a>
+</form>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Удаление объявления{% endblock %}
+
+{% block content %}
+<h1>Удалить объявление?</h1>
+<div class="card">
+  <p><strong>{{ ad.title }}</strong> ({{ ad.get_ad_type_display }})</p>
+  <p>Это действие нельзя отменить.</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Да, удалить</button>
+    <a class="btn btn-secondary" href="{% url 'exchange:detail' ad.pk %}">Отмена</a>
+  </form>
+</div>
+{% endblock %}

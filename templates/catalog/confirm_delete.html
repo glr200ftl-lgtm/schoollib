@@ -1,0 +1,13 @@
+{% extends "catalog/admin_base.html" %}
+{% block title %}Удаление — подтверждение{% endblock %}
+{% block admin_content %}
+<div class="confirm-box">
+    <h2>Подтвердите удаление</h2>
+    <p>Удалить <strong>{{ object }}</strong>? Это действие необратимо.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Да, удалить</button>
+        <a href="{{ cancel_url }}" class="btn btn-link">Отмена</a>
+    </form>
+</div>
+{% endblock %}

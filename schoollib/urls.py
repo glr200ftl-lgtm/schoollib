@@ -6,6 +6,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
+    path("", include("catalog.admin_urls")),  # /admin/books, /admin/categories (этап 5) — раньше django-admin
     path("admin/", admin.site.urls),
     path("", include("accounts.urls")),
     path("", include("catalog.urls")),

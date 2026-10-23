@@ -57,18 +57,26 @@ class AdminOnlyMiddleware:
     """Гость на /admin/ -> редирект на вход; не-админ -> 403."""
 
     ADMIN_PREFIX = "/admin/"
+    # Пути собственного раздела управления каталогом (этап 5) middleware
+    # пропускает дальше — их защищает декоратор @admin_required.
+    EXEMPT_PATHS = ("/admin/books", "/admin/categories", "/admin/import", "/admin/export")
 
     def __init__(self, get_response):
         self.get_response = get_response
 
+    def _is_exempt(self, path):
+        if path.rstrip("/") in self.EXEMPT_PATHS:
+            return True
+        return any(path.startswith(p + "/") for p in self.EXEMPT_PATHS)
+
     def __call__(self, request):
-        if request.path.startswith(self.ADMIN_PREFIX):
+        if request.path.startswith(self.ADMIN_PREFIX) and not self._is_exempt(request.path):
             user = getattr(request, "user", None)
             if user is None or not user.is_authenticated:
                 from django.shortcuts import redirect
                 from urllib.parse import quote
 
-                return redirect(f"/login/?next={quote(request.full_path)}")
+                return redirect(f"/login/?next={quote(request.get_full_path())}")
             if user.role != "admin":
                 from django.core.exceptions import PermissionDenied
 

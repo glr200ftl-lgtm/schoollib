@@ -1,0 +1,9 @@
+Watching for file changes with StatReloader
+[08/Oct/2026 20:16:11] "GET / HTTP/1.1" 200 1982
+[08/Oct/2026 20:16:11] "GET /catalog/ HTTP/1.1" 200 8096
+[08/Oct/2026 20:16:11] "GET /exchange/ HTTP/1.1" 200 1679
+[08/Oct/2026 20:16:11] "GET /catalog/ HTTP/1.1" 200 8096
+[08/Oct/2026 20:16:11] "GET /catalog/ HTTP/1.1" 200 8096
+[08/Oct/2026 20:16:11] "GET /media/covers/01_b515f4c5.png HTTP/1.1" 200 3385
+[08/Oct/2026 20:16:11] "GET / HTTP/1.1" 200 1982
+[08/Oct/2026 20:16:35] "GET / HTTP/1.1" 200 1982

@@ -164,19 +164,33 @@ class Book(models.Model):
             self.catalog_number = f"ШК-{year}-{next_pk:04d}"
         super().save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        from django.urls import reverse
+
+        return reverse("catalog:book_detail", args=[self.pk])
+
 
 class Ad(models.Model):
-    """Объявление об обмене книги (п.6 ТЗ — ads)."""
+    """Объявление об обмене книги (п.6 ТЗ — ads; этап 4 — доска объявлений)."""
 
     class Status(models.TextChoices):
         ACTIVE = "active", "Активно"
+        ARCHIVED = "archived", "В архиве"
         CLOSED = "closed", "Закрыто"
+
+    class Type(models.TextChoices):
+        GIVE = "give", "Отдам"
+        SEEK = "seek", "Ищу"
+        EXCHANGE = "exchange", "Обменяю"
 
     book = models.ForeignKey(
         Book,
         verbose_name="Книга",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="ads",
+        null=True,
+        blank=True,
+        help_text="Необязательно: объявление может быть без привязки к каталогу.",
     )
     author = models.ForeignKey(
         User,
@@ -184,8 +198,19 @@ class Ad(models.Model):
         on_delete=models.CASCADE,
         related_name="ads",
     )
-    title = models.CharField("Заголовок", max_length=200)
-    text = models.TextField("Текст объявления")
+    title = models.CharField("Название", max_length=200)
+    ad_type = models.CharField(
+        "Тип", max_length=10, choices=Type.choices, default=Type.EXCHANGE
+    )
+    text = models.TextField("Описание", blank=True)
+    contact = models.CharField(
+        "Контакт", max_length=200, blank=True,
+        help_text="По умолчанию подставляется из профиля (e-mail).",
+    )
+    photos = models.JSONField(
+        "Фотографии", default=list, blank=True,
+        help_text="До 3 относительных путей в MEDIA (ads_photos/...).",
+    )
     status = models.CharField(
         "Статус", max_length=10, choices=Status.choices, default=Status.ACTIVE
     )
@@ -195,6 +220,7 @@ class Ad(models.Model):
         db_table = "ads"
         verbose_name = "Объявление"
         verbose_name_plural = "Объявления"
+        ordering = ["-created_at"]
 
     def __str__(self):
         return self.title

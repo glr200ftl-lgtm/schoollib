@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load extras %}
+
+{% block title %}{{ ad.title }} — Обмен — Школьная библиотека{% endblock %}
+
+{% block content %}
+<div class="ad-detail">
+  <p><a href="{% url 'exchange:list' %}">← К доске объявлений</a></p>
+  <div class="card">
+    <div class="ad-type-badge ad-type-{{ ad.ad_type }}">{{ ad.get_ad_type_display }}</div>
+    <h1>{{ ad.title }}</h1>
+    {% if ad.photos %}
+      <div class="ad-photos">
+        {% for p in ad.photos %}<img src="{{ MEDIA_URL }}{{ p }}" alt="Фото объявления">{% endfor %}
+      </div>
+    {% elif ad.book and ad.book.cover %}
+      <img src="{{ ad.book.cover.url }}" alt="{{ ad.title }}" class="ad-photo">
+    {% else %}
+      <div class="cover-missing">Нет фото</div>
+    {% endif %}
+    <table class="detail-table">
+      <tr><th>Тип</th><td>{{ ad.get_ad_type_display }}</td></tr>
+      {% if ad.book %}
+        <tr><th>Книга</th><td><a href="{% url 'catalog:book_detail' ad.book.pk %}">{{ ad.book.title }} — {{ ad.book.author }}</a></td></tr>
+      {% endif %}
+      <tr><th>Описание</th><td>{{ ad.text|linebreaksbr }}</td></tr>
+      <tr><th>Контакт</th><td>{{ ad.contact }}</td></tr>
+      <tr><th>Автор объявления</th><td>{{ ad.author.full_name|default:ad.author.username }}{% if ad.author.grade %} ({{ ad.author.grade }} класс){% endif %}</td></tr>
+      <tr><th>Статус</th><td>{{ ad.get_status_display }}</td></tr>
+      <tr><th>Опубликовано</th><td>{{ ad.created_at|date:"d.m.Y H:i" }}</td></tr>
+    </table>
+    {% if ad.author_id == user.id %}
+      <div class="ad-actions">
+        <a class="btn btn-secondary" href="{% url 'exchange:edit' ad.pk %}">Редактировать</a>
+        <form method="post" action="{% url 'exchange:archive' ad.pk %}" style="display:inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-secondary">
+            {% if ad.status == 'active' %}В архив{% else %}Вернуть в ленту{% endif %}
+          </button>
+        </form>
+        <a class="btn btn-danger" href="{% url 'exchange:delete' ad.pk %}">Удалить</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

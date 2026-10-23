@@ -16,12 +16,12 @@
             <nav class="main-nav">
                 <a href="{% url 'catalog:home' %}" class="{% if request.path == '/' %}active{% endif %}">Главная</a>
                 <a href="{% url 'catalog:catalog' %}" class="{% if '/catalog' in request.path %}active{% endif %}">Каталог</a>
-                <a href="{% url 'exchange:exchange' %}" class="{% if '/exchange' in request.path %}active{% endif %}">Обмен</a>
+                <a href="{% url 'exchange:list' %}" class="{% if '/exchange' in request.path %}active{% endif %}">Обмен</a>
             </nav>
             <nav class="auth-nav">
                 {% if user.is_authenticated %}
                     <a href="{% url 'accounts:my' %}">Кабинет ({{ user.username }})</a>
-                    {% if user.role == 'admin' %}<a href="/admin/">Админка</a>{% endif %}
+                    {% if user.role == 'admin' %}<a href="{% url 'catalog_admin:book_list' %}">Админка</a>{% endif %}
                     <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">{% csrf_token %}
                         <button type="submit" class="link-btn">Выйти</button>
                     </form>

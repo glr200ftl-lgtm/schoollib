@@ -1,0 +1,15 @@
+{% extends "catalog/admin_base.html" %}
+{% block title %}{% if is_new %}Добавить книгу{% else %}Редактировать книгу{% endif %} — админка{% endblock %}
+{% block admin_content %}
+<h2>{% if is_new %}Добавить книгу{% else %}Редактирование: {{ book.title }}{% endif %}</h2>
+
+<form method="post" enctype="multipart/form-data" class="model-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {% if not is_new and book.cover %}
+        <p><img src="{{ book.cover.url }}" alt="Текущая обложка" class="cover-thumb cover-preview"></p>
+    {% endif %}
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <a href="{% url 'catalog_admin:book_list' %}" class="btn btn-link">Отмена</a>
+</form>
+{% endblock %}

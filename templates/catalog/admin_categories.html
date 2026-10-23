@@ -1,0 +1,33 @@
+{% extends "catalog/admin_base.html" %}
+{% block title %}Категории — админка{% endblock %}
+{% block admin_content %}
+<div class="admin-toolbar">
+    <h2>Категории ({{ categories|length }})</h2>
+    <a class="btn btn-primary" href="{% url 'catalog_admin:category_create' %}">+ Добавить категорию</a>
+</div>
+
+<table class="admin-table">
+    <thead>
+        <tr><th>Название</th><th>Описание</th><th>Книг</th><th>Действия</th></tr>
+    </thead>
+    <tbody>
+        {% for c in categories %}
+        <tr>
+            <td>{{ c.name }}</td>
+            <td>{{ c.description|default:"—" }}</td>
+            <td>{{ c.book_count }}</td>
+            <td class="actions">
+                <a href="{% url 'catalog_admin:category_edit' c.pk %}" class="btn btn-sm">Ред.</a>
+                {% if c.book_count %}
+                    <span class="muted" title="В категории есть книги — удаление запрещено">Удалить нельзя</span>
+                {% else %}
+                    <a href="{% url 'catalog_admin:category_delete' c.pk %}" class="btn btn-sm btn-danger">Удалить</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">Категорий пока нет.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

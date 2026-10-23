@@ -1,0 +1,92 @@
+{% extends "catalog/admin_base.html" %}
+
+{% block admin_content %}
+<h1>Импорт каталога из CSV</h1>
+
+<p class="muted">
+  Поддерживаются файлы UTF-8 и UTF-8 с BOM; разделитель «;» или «,» определяется автоматически.<br>
+  Колонки: Название; Автор; Каталогожный номер; Год; Категория; Описание; URL обложки.<br>
+  Обложки: http(s)-URL в колонке «URL обложки» либо имя файла из ZIP-архива, загруженного вместе с CSV.<br>
+  Категории, отсутствующие в базе, создаются автоматически.
+</p>
+
+{% if form_error %}<div class="alert alert-error">{{ form_error }}</div>{% endif %}
+
+<form method="post" enctype="multipart/form-data" action="{% url 'catalog_admin:import' %}" class="import-form">
+  {% csrf_token %}
+
+  <div class="dropzone" id="csv-drop">
+    <label for="id_csv_file"><strong>CSV-файл каталога</strong> (перетащите файл сюда или выберите)</label>
+    <input type="file" name="csv_file" id="id_csv_file" accept=".csv,text/csv" required>
+  </div>
+  <div class="dropzone" id="zip-drop">
+    <label for="id_zip_file"><strong>ZIP с обложками</strong> (необязательно)</label>
+    <input type="file" name="zip_file" id="id_zip_file" accept=".zip,application/zip">
+  </div>
+
+  <fieldset class="radio-group">
+    <legend>Режим импорта</legend>
+    <label><input type="radio" name="mode" value="add" {% if mode == 'add' and not confirm_mode %}checked{% endif %}> Добавить новые (существующие номера пропускаются)</label>
+    <label><input type="radio" name="mode" value="upsert" {% if mode == 'upsert' or confirm_mode == 'upsert' %}checked{% endif %}> Добавить + обновить (upsert по каталожному номеру)</label>
+  </fieldset>
+
+  <button type="submit" class="btn btn-primary">Проверить и показать предпросмотр</button>
+</form>
+
+{% if preview %}
+<section class="preview-card">
+  <h2>Предпросмотр: {{ file_name }}{% if zip_name %} + {{ zip_name }}{% endif %}</h2>
+  <p class="summary">
+    Будет добавлено: <strong>{{ preview.will_add }}</strong>,
+    будет обновлено: <strong>{{ preview.will_update }}</strong>,
+    ошибок: <strong>{{ preview.error_count }}</strong>.
+  </p>
+  <p class="muted">Данные ещё не изменены. Нажмите «Применить импорт», чтобы записать корректные строки в базу.</p>
+
+  {% if preview.errors %}
+  <table class="table errors-table">
+    <thead><tr><th>Строка</th><th>Причина ошибки</th></tr></thead>
+    <tbody>
+      {% for e in preview.errors %}
+      <tr><td>{{ e.row }}</td><td>{{ e.reason }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <form method="post" action="{% url 'catalog_admin:import' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="confirm_mode" value="{{ mode }}">
+    <input type="hidden" name="apply" value="yes">
+    <div class="dropzone">
+      <label for="id_apply_file"><strong>Подтвердите импорт:</strong> выберите тот же CSV-файл{{ zip_name|yesno:" и тот же ZIP" }}</label>
+      <input type="file" name="csv_file" id="id_apply_file" accept=".csv,text/csv" required>
+      <input type="file" name="zip_file" accept=".zip,application/zip" {% if not zip_name %}disabled{% endif %}>
+    </div>
+    <button type="submit" class="btn btn-success" disabled>Выберите файлы, чтобы применить</button>
+  </form>
+  <script>
+    (() => {
+      const form = document.querySelector('.preview-card form');
+      const btn = form.querySelector('button[type=submit]');
+      const inputs = form.querySelectorAll('input[type=file]:not([disabled])');
+      const refresh = () => { btn.disabled = [...inputs].some(i => !i.files.length); };
+      inputs.forEach(i => i.addEventListener('change', refresh));
+      btn.addEventListener('click', () => { if (!btn.disabled) btn.textContent = 'Импорт применяется…'; });
+    })();
+  </script>
+</section>
+{% endif %}
+
+<script>
+  // drag&drop для зон загрузки (основная форма)
+  document.querySelectorAll('.dropzone').forEach(zone => {
+    const input = zone.querySelector('input[type=file]');
+    ['dragover','dragenter'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('drag'); }));
+    ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('drag'); }));
+    zone.addEventListener('drop', e => {
+      if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files; input.dispatchEvent(new Event('change')); }
+    });
+  });
+</script>
+{% endblock %}

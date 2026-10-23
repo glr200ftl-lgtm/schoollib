@@ -77,18 +77,21 @@ ADS = [
         "Книга в хорошем состоянии, без помарок. Ищу учебник geometry 9 класс Мерзляк или аналог. Могу добавить книгу по физике.",
         "Алгебра. 9 класс",
         "student1",
+        "exchange",
     ),
     (
         "«Маленький принц» — новый, отдам за «Войну и мир»",
         "Совершенно новая книга, читала один раз. Интересен обмен на Толстого в любом состоянии.",
         "Маленький принц",
         "student2",
+        "give",
     ),
     (
         "Срочно! Учебник физики 8 класс для обмена",
         "Отдам «Занимательную химию» + справочник по математике за учебник Пёрышкина. Договориться можно после уроков в библиотеке.",
         "Физика. 8 класс",
         "student1",
+        "seek",
     ),
 ]
 
@@ -210,16 +213,22 @@ class Command(BaseCommand):
 
         # Объявления
         ads_created = 0
-        for title, text, book_title, author_login in ADS:
-            _, created = Ad.objects.get_or_create(
+        for title, text, book_title, author_login, ad_type in ADS:
+            owner = user_map[author_login]
+            ad, created = Ad.objects.get_or_create(
                 title=title,
                 defaults={
                     "text": text,
                     "book": book_map[book_title],
-                    "author": user_map[author_login],
+                    "author": owner,
+                    "ad_type": ad_type,
+                    "contact": owner.email,
                     "status": Ad.Status.ACTIVE,
                 },
             )
+            if not created and not ad.contact:
+                ad.contact = ad.author.email
+                ad.save(update_fields=["contact"])
             ads_created += created
             self.stdout.write(f"{'+' if created else '='} объявление: {title}")
 

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}{{ mode }} объявления — Школьная библиотека{% endblock %}
+
+{% block content %}
+<h1>{{ mode }} объявления</h1>
+<form method="post" enctype="multipart/form-data" class="book-form">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <p><label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+     {{ form.title }} {{ form.title.errors }}</p>
+  <p><label for="{{ form.book.id_for_label }}">Книга из каталога (необязательно)</label>
+     {{ form.book }} {{ form.book.errors }}</p>
+  <p><label for="{{ form.ad_type.id_for_label }}">{{ form.ad_type.label }}</label>
+     {{ form.ad_type }} {{ form.ad_type.errors }}</p>
+  <p><label for="{{ form.text.id_for_label }}">{{ form.text.label }}</label>
+     {{ form.text }} {{ form.text.errors }}</p>
+  <p><label for="{{ form.contact.id_for_label }}">{{ form.contact.label }}</label>
+     {{ form.contact }} {{ form.contact.errors }}</p>
+  {% if form.status %}
+    <p><label for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
+       {{ form.status }}</p>
+  {% endif %}
+  <fieldset>
+    <legend>Фотографии (до 3, JPG/PNG/WEBP/GIF, ≤3 МБ)</legend>
+    {% if ad and ad.photos %}
+      <div class="ad-photos existing-photos">
+        {% for p in ad.photos %}
+          <figure>
+            <img src="{{ MEDIA_URL }}{{ p }}" alt="Фото {{ forloop.counter }}">
+            <label><input type="checkbox" name="remove_photo_{{ forloop.counter0 }}"> удалить</label>
+          </figure>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {{ form.photo1.errors }}<p>Фото 1: {{ form.photo1 }}</p>
+    {{ form.photo2.errors }}<p>Фото 2: {{ form.photo2 }}</p>
+    {{ form.photo3.errors }}<p>Фото 3: {{ form.photo3 }}</p>
+  </fieldset>
+  <button type="submit" class="btn btn-primary">Сохранить</button>
+  <a class="btn btn-secondary" href="{% if ad %}{% url 'exchange:detail' ad.pk %}{% else %}{% url 'exchange:list' %}{% endif %}">Отмена</a>
+</form>
+{% endblock %}

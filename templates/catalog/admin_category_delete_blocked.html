@@ -1,0 +1,10 @@
+{% extends "catalog/admin_base.html" %}
+{% block title %}Удаление категории{% endblock %}
+{% block admin_content %}
+<div class="confirm-box">
+    <h2>Категорию удалить нельзя</h2>
+    <p>В категории «{{ category.name }}» есть книги ({{ book_count }} шт.).
+       Сначала перенесите или удалите их, затем повторите удаление категории.</p>
+    <a href="{% url 'catalog_admin:category_list' %}" class="btn">К списку категорий</a>
+</div>
+{% endblock %}

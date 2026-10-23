@@ -1,9 +1,66 @@
 {% extends "base.html" %}
+{% load extras %}
 
-{% block title %}Обмен — Школьная библиотека{% endblock %}
+{% block title %}Обмен книгами — Школьная библиотека{% endblock %}
 
 {% block content %}
-<h1>Страница существует</h1>
-<p>Раздел обмена книгами будет реализован на следующих этапах.
-Здесь появятся объявления (таблица <code>ads</code>) и форма подачи объявления.</p>
+<div class="page-head">
+  <h1>Доска объявлений: обмен книгами</h1>
+  {% if can_create %}
+    <a class="btn btn-primary" href="{% url 'exchange:create' %}">+ Создать объявление</a>
+  {% endif %}
+</div>
+
+<form method="get" class="filter-form">
+  {% if current_type %}<input type="hidden" name="type" value="{{ current_type }}">{% endif %}
+  <input type="text" name="q" value="{{ q }}" placeholder="Поиск по названию объявления…">
+  <button type="submit" class="btn btn-secondary">Найти</button>
+</form>
+
+<ul class="type-tabs">
+  <li><a class="{% if not current_type %}active{% endif %}"
+     href="?{% if q %}q={{ q|urlencode }}&{% endif %}">Все ({{ total_count }})</a></li>
+  {% for value, label in types %}
+    <li><a class="{% if current_type == value %}active{% endif %}"
+       href="?type={{ value }}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ label }} ({{ counts|dict_access:value }})</a></li>
+  {% endfor %}
+</ul>
+
+<p class="result-count">Объявлений: {{ total_count }}</p>
+
+{% if page_obj.object_list %}
+<div class="ads-grid">
+  {% for ad in page_obj %}
+    <div class="card ad-card">
+      <div class="ad-type-badge ad-type-{{ ad.ad_type }}">{{ ad.get_ad_type_display }}</div>
+      {% if ad.photos %}
+        <img src="{{ MEDIA_URL }}{{ ad.photos.0 }}" alt="{{ ad.title }}" class="ad-photo">
+      {% elif ad.book and ad.book.cover %}
+        <img src="{{ ad.book.cover.url }}" alt="{{ ad.title }}" class="ad-photo">
+      {% else %}
+        <div class="cover-missing">Нет фото</div>
+      {% endif %}
+      <h3><a href="{% url 'exchange:detail' ad.pk %}">{{ ad.title }}</a></h3>
+      {% if ad.book %}<p class="muted">Книга: {{ ad.book.title }} — {{ ad.book.author }}</p>{% endif %}
+      <p>{{ ad.text|truncatewords:25 }}</p>
+      <p class="muted">{{ ad.author.full_name|default:ad.author.username }} · {{ ad.created_at|date:"d.m.Y" }}</p>
+    </div>
+  {% endfor %}
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="pagination">
+  {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if current_type %}&type={{ current_type }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">← Назад</a>
+  {% endif %}
+  <span>Стр. {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if current_type %}&type={{ current_type }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Вперёд →</a>
+  {% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+<p class="empty-state">Ничего не найдено.</p>
+{% endif %}
 {% endblock %}

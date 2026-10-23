@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Админка — школьная библиотека{% endblock %}
+{% block content %}
+<div class="admin-layout">
+    <aside class="admin-sidebar">
+        <h3>Управление</h3>
+        <ul>
+            <li><a href="{% url 'catalog_admin:book_list' %}" class="{% if '/admin/books' in request.path %}active{% endif %}">Книги</a></li>
+            <li><a href="{% url 'catalog_admin:category_list' %}" class="{% if '/admin/categories' in request.path %}active{% endif %}">Категории</a></li>
+            <li><a href="{% url 'catalog_admin:import' %}" class="{% if '/admin/import' in request.path %}active{% endif %}">Импорт CSV</a></li>
+            <li><a href="{% url 'catalog_admin:export' %}" class="{% if '/admin/export' in request.path %}active{% endif %}">Экспорт CSV</a></li>
+            <li class="muted">Пользователи <span class="badge badge-muted">скоро</span></li>
+            <li class="muted">Модерация объявлений <span class="badge badge-muted">скоро</span></li>
+            <li class="muted">Статистика <span class="badge badge-muted">скоро</span></li>
+        </ul>
+    </aside>
+    <div class="admin-content">
+        {% block admin_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

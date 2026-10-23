@@ -3,10 +3,41 @@
 {% block content %}
 <h1>Мой кабинет</h1>
 <p>Здравствуйте, <strong>{{ user.full_name }}</strong>! Класс: {{ user.grade|default:"—" }}</p>
-<p><a class="btn" href="{% url 'accounts:profile' %}">Редактировать профиль</a></p>
+<p>
+  <a class="btn" href="{% url 'accounts:profile' %}">Редактировать профиль</a>
+  {% if user.role == 'student' %}
+    <a class="btn btn-primary" href="{% url 'exchange:create' %}">+ Создать объявление</a>
+  {% endif %}
+</p>
 <h2>Мои книги ({{ books|length }})</h2>
 <ul>{% for b in books %}<li>{{ b.title }} — {{ b.author }}</li>{% empty %}<li class="muted">Пока нет книг.</li>{% endfor %}</ul>
+
 <h2>Мои объявления ({{ ads|length }})</h2>
-<ul>{% for a in ads %}<li>{{ a.title }}</li>{% empty %}<li class="muted">Пока нет объявлений.</li>{% endfor %}</ul>
-<p class="muted">Добавление книг и объявлений — следующий этап.</p>
+{% if ads %}
+<table class="table my-ads">
+  <thead><tr><th>Название</th><th>Тип</th><th>Статус</th><th>Дата</th><th>Действия</th></tr></thead>
+  <tbody>
+  {% for a in ads %}
+    <tr>
+      <td><a href="{% url 'exchange:detail' a.pk %}">{{ a.title }}</a></td>
+      <td>{{ a.get_ad_type_display }}</td>
+      <td><span class="status-badge status-{{ a.status }}">{{ a.get_status_display }}</span></td>
+      <td>{{ a.created_at|date:"d.m.Y" }}</td>
+      <td class="row-actions">
+        <a href="{% url 'exchange:edit' a.pk %}">Ред.</a>
+        <form method="post" action="{% url 'exchange:archive' a.pk %}" style="display:inline">
+          {% csrf_token %}
+          <button type="submit" class="link-btn">
+            {% if a.status == 'active' %}В архив{% elif a.status == 'archived' %}Вернуть{% endif %}
+          </button>
+        </form>
+        <a href="{% url 'exchange:delete' a.pk %}" class="danger">Удалить</a>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">Пока нет объявлений. <a href="{% url 'exchange:create' %}">Создайте первое</a>.</p>
+{% endif %}
 {% endblock %}

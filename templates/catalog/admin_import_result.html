@@ -1,0 +1,30 @@
+{% extends "catalog/admin_base.html" %}
+
+{% block admin_content %}
+<h1>Результат импорта</h1>
+
+<div class="alert alert-success">
+  Импорт завершён: добавлено <strong>{{ report.added }}</strong>,
+  обновлено <strong>{{ report.updated }}</strong>,
+  ошибок <strong>{{ report.error_count }}</strong>.
+</div>
+
+{% if report.errors %}
+<h2>Отчёт об ошибках (строки пропущены)</h2>
+<table class="table errors-table">
+  <thead><tr><th>Строка CSV</th><th>Причина</th></tr></thead>
+  <tbody>
+    {% for e in report.errors %}
+    <tr><td>{{ e.row }}</td><td>{{ e.reason }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p class="muted">Исправьте проблемные строки в файле и повторите импорт — остальные книги уже в базе.</p>
+{% endif %}
+
+<div class="actions">
+  <a class="btn btn-primary" href="{% url 'catalog_admin:book_list' %}">К списку книг</a>
+  <a class="btn btn-link" href="{% url 'catalog_admin:import' %}">Импортировать ещё файл</a>
+  <a class="btn btn-link" href="{% url 'catalog_admin:export' %}">Скачать экспорт каталога</a>
+</div>
+{% endblock %}
