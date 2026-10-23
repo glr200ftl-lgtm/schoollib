@@ -1,6 +1,7 @@
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
+from django.utils import timezone
 
 
 class UserManager(BaseUserManager):
@@ -116,6 +117,11 @@ class Book(models.Model):
 
     title = models.CharField("Название", max_length=200)
     author = models.CharField("Автор", max_length=200)
+    catalog_number = models.CharField(
+        "Каталожный номер", max_length=30, unique=True, blank=True,
+        help_text="Формируется автоматически: ШК-ГГГГ-NNNN.",
+    )
+    year = models.PositiveIntegerField("Год издания", null=True, blank=True)
     category = models.ForeignKey(
         Category,
         verbose_name="Категория",
@@ -143,6 +149,20 @@ class Book(models.Model):
 
     def __str__(self):
         return f"{self.title} — {self.author}"
+
+    def save(self, *args, **kwargs):
+        """Автоматически присваивает каталожный номер при первом сохранении.
+
+        Номер формируется ДО вставки (по максимальному текущему pk+1), чтобы
+        не делать повторный UPDATE с update_fields — иначе Django падает с
+        «Update fields are not allowed: created_at» из-за auto_now_add.
+        """
+        if not self.catalog_number:
+            from django.db.models import Max
+            next_pk = (Book.objects.aggregate(m=Max("pk"))["m"] or 0) + 1
+            year = timezone.now().year
+            self.catalog_number = f"ШК-{year}-{next_pk:04d}"
+        super().save(*args, **kwargs)
 
 
 class Ad(models.Model):

@@ -1,26 +1,77 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Каталог — Школьная библиотека{% endblock %}
+{% block title %}{% if category %}{{ category.name }} — Каталог{% else %}Каталог — Школьная библиотека{% endif %}{% endblock %}
 
 {% block content %}
-<h1>Каталог книг</h1>
-<p class="muted">Этап 1: отображение seed-данных. Поиск и фильтры появятся на следующих этапах.</p>
+<h1>{% if category %}Категория: {{ category.name }} <span class="count-badge">{{ current_category_count }}</span>{% else %}Каталог книг{% endif %}</h1>
+<p class="muted">Найдено книг: {{ total_count }}{% if query %} по запросу «{{ query }}»{% endif %}</p>
 
-<div class="books-grid">
-    {% for book in books %}
-    <article class="book-card">
-        {% if book.cover %}
-            <img src="{{ book.cover.url }}" alt="Обложка: {{ book.title }}" class="cover">
-        {% else %}
-            <div class="cover cover-placeholder">Нет обложки</div>
+<form method="get" action="{% url 'catalog:catalog' %}" class="search-form">
+    <input type="text" name="q" value="{{ query }}" placeholder="Поиск по названию или автору…" aria-label="Поиск">
+    {% for cid in selected_ids %}<input type="hidden" name="categories" value="{{ cid }}">{% endfor %}
+    <button type="submit">Найти</button>
+</form>
+
+<div class="catalog-layout">
+    <aside class="filters">
+        <h2>Категории</h2>
+        <ul class="filter-list">
+            <li><a href="{% url 'catalog:catalog' %}{% if query %}?q={{ query|urlencode }}{% endif %}"
+                   class="{% if not selected_ids %}active{% endif %}">Все книги</a></li>
+            {% for c in categories %}
+            <li>
+                {% if c.category__id|stringformat:"s" in selected_ids %}
+                    <a href="{% url 'catalog:catalog' %}?{% for sid in selected_ids %}{% if sid != c.category__id|stringformat:'s' %}categories={{ sid }}&{% endif %}{% endfor %}{% if query %}q={{ query|urlencode }}{% endif %}"
+                       class="active">✕ {{ c.category__name }} ({{ c.books_count }})</a>
+                {% else %}
+                    <a href="{% url 'catalog:category' c.category__id %}{% if query %}?q={{ query|urlencode }}{% endif %}">{{ c.category__name }} ({{ c.books_count }})</a>
+                {% endif %}
+            </li>
+            {% empty %}
+            <li class="muted">Категорий нет</li>
+            {% endfor %}
+        </ul>
+    </aside>
+
+    <section>
+        <div class="books-grid">
+            {% for book in page_obj %}
+            <article class="book-card">
+                <a href="{% url 'catalog:book_detail' book.pk %}" class="cover-link">
+                    {% if book.cover %}
+                        <img src="{{ book.cover.url }}" alt="Обложка: {{ book.title }}" class="cover">
+                    {% else %}
+                        <div class="cover cover-placeholder">Нет обложки</div>
+                    {% endif %}
+                </a>
+                <h3><a href="{% url 'catalog:book_detail' book.pk %}">{{ book.title }}</a></h3>
+                <p class="author">{{ book.author }}</p>
+                <p class="meta">{{ book.category.name }} · {{ book.get_condition_display }}</p>
+                <p class="meta muted">№ {{ book.catalog_number }}{% if not book.is_available %} · <strong>нет в наличии</strong>{% endif %}</p>
+            </article>
+            {% empty %}
+            <p class="empty-state">Ничего не найдено.</p>
+            {% endfor %}
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <nav class="pagination" aria-label="Страницы">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% for sid in selected_ids %}&categories={{ sid }}{% endfor %}{% if query %}&q={{ query|urlencode }}{% endif %}">← Назад</a>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+                {% if num == page_obj.number %}
+                    <span class="current">{{ num }}</span>
+                {% else %}
+                    <a href="?page={{ num }}{% for sid in selected_ids %}&categories={{ sid }}{% endfor %}{% if query %}&q={{ query|urlencode }}{% endif %}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% for sid in selected_ids %}&categories={{ sid }}{% endfor %}{% if query %}&q={{ query|urlencode }}{% endif %}">Вперёд →</a>
+            {% endif %}
+        </nav>
         {% endif %}
-        <h2>{{ book.title }}</h2>
-        <p class="author">{{ book.author }}</p>
-        <p class="meta">Категория: {{ book.category.name }} · Состояние: {{ book.get_condition_display }}</p>
-        <p class="meta muted">Владелец: {{ book.owner.full_name }} ({{ book.owner.grade }})</p>
-    </article>
-    {% empty %}
-    <p>Каталог пуст — выполните <code>python manage.py seed_demo</code>.</p>
-    {% endfor %}
+    </section>
 </div>
 {% endblock %}

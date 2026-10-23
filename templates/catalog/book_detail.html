@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ book.title }} — Школьная библиотека{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb"><a href="{% url 'catalog:catalog' %}">Каталог</a> → <a href="{% url 'catalog:category' book.category.pk %}">{{ book.category.name }}</a> → {{ book.title }}</nav>
+
+<article class="book-detail">
+    <div class="book-cover">
+        {% if book.cover %}
+            <img src="{{ book.cover.url }}" alt="Обложка: {{ book.title }}" class="cover cover-large">
+        {% else %}
+            <div class="cover cover-placeholder cover-large">Нет обложки</div>
+        {% endif %}
+    </div>
+    <div class="book-info">
+        <h1>{{ book.title }}</h1>
+        <dl>
+            <dt>Автор</dt><dd>{{ book.author }}</dd>
+            <dt>Категория</dt><dd><a href="{% url 'catalog:category' book.category.pk %}">{{ book.category.name }}</a></dd>
+            <dt>Каталожный номер</dt><dd>{{ book.catalog_number }}</dd>
+            <dt>Год издания</dt><dd>{{ book.year|default:"—" }}</dd>
+            <dt>Состояние</dt><dd>{{ book.get_condition_display }}</dd>
+            <dt>Наличие</dt>
+            <dd>{% if book.is_available %}<span class="badge badge-ok">Доступна для обмена</span>{% else %}<span class="badge badge-no">Нет в наличии</span>{% endif %}</dd>
+        </dl>
+        <p class="description">{{ book.description }}</p>
+    </div>
+</article>
+{% endblock %}

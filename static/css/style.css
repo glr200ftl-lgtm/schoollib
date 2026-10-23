@@ -111,3 +111,31 @@ main.container { flex: 1; padding-top: 24px; padding-bottom: 40px; }
     justify-content: center;
 }
 .muted { color: var(--muted); }
+
+/* ===== Этап 3: каталог, фильтры, поиск, карточка книги ===== */
+.search-form { display: flex; gap: .5rem; margin: 1rem 0; }
+.search-form input[type=text] { flex: 1; padding: .5rem .75rem; border: 1px solid #cbd5e1; border-radius: 8px; }
+.search-form button { padding: .5rem 1.25rem; background: #1d4ed8; color: #fff; border: 0; border-radius: 8px; cursor: pointer; }
+.catalog-layout { display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; align-items: start; }
+.filters { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; }
+.filters h2 { font-size: 1rem; margin-top: 0; }
+.filter-list { list-style: none; margin: 0; padding: 0; }
+.filter-list li { margin: .35rem 0; }
+.filter-list a { color: #334155; text-decoration: none; display: block; padding: .25rem .5rem; border-radius: 6px; }
+.filter-list a:hover { background: #e2e8f0; }
+.filter-list a.active { background: #dbeafe; color: #1d4ed8; font-weight: 600; }
+.count-badge { display: inline-block; background: #1d4ed8; color: #fff; border-radius: 999px; padding: .1rem .6rem; font-size: .85rem; vertical-align: middle; }
+.empty-state { padding: 2rem; text-align: center; color: #64748b; font-size: 1.1rem; }
+.pagination { display: flex; gap: .4rem; margin: 1.5rem 0; justify-content: center; }
+.pagination a, .pagination .current { padding: .35rem .75rem; border: 1px solid #cbd5e1; border-radius: 6px; text-decoration: none; color: #1d4ed8; }
+.pagination .current { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+.book-detail { display: grid; grid-template-columns: 320px 1fr; gap: 2rem; margin-top: 1rem; }
+.cover-large { width: 100%; height: auto; max-width: 320px; }
+.book-info dl { display: grid; grid-template-columns: max-content 1fr; gap: .35rem 1rem; }
+.book-info dt { font-weight: 600; color: #475569; }
+.badge { padding: .2rem .6rem; border-radius: 999px; font-size: .85rem; }
+.badge-ok { background: #dcfce7; color: #166534; }
+.badge-no { background: #fee2e2; color: #991b1b; }
+.breadcrumb { margin-top: 1rem; color: #64748b; font-size: .9rem; }
+.breadcrumb a { color: #1d4ed8; text-decoration: none; }
+@media (max-width: 768px) { .catalog-layout, .book-detail { grid-template-columns: 1fr; } }
