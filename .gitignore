@@ -1,6 +1,1 @@
-__pycache__/
-*.pyc
 db.sqlite3
-server.log
-*.log
-media/
